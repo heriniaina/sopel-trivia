@@ -13,3 +13,5 @@ Sopel module to have a quizz in your channel
     * sokajy: Category
 
 
+## Commandes
+__!lalao__: Start the game

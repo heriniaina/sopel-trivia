@@ -152,7 +152,7 @@ class Trivia():
     def stop(self, bot, trigger):
         if trigger.sender != EFITRA:
             return
-        if trigger.admin and self.nanomboka:
+        if trigger.admin or self.nanomboka:
             self.mandeha = {}
             self.nanomboka = False
             self.mpanomboka = ""
