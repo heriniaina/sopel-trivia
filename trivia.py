@@ -12,7 +12,13 @@ import sopel.module
 from sopel.module import rule, event, priority, thread
 from sopel.tools import Identifier, events
 
-EFITRA = "#lalaotest"
+####
+# config
+# I will move this to a config file
+####
+
+EFITRA = "#lalao" #Channel for the bot. Only accept commands here
+ANGONA = os.path.dirname(os.path.realpath(__file__)) + '/db/trivia.db'#Database filename
 
 TENY = {
     'EFA_MANDEHA': '\x0300,01Efa mandeha ny lalao natombok\'i %s!',
@@ -33,16 +39,16 @@ TENY = {
 
 
 class Trivia():
-    def __init__(self):
-        self.nanomboka = False
-        self.mpanomboka = ""
-        self.mandeha = {}
-        self.mpilalao = {}
+    def __init__(self, bot):
+        self.nanomboka = False # Efa nanomboka ve ny lalao?
+        self.mpanomboka = "" # Iza no nanomboka azy?
+        self.mandeha = dict() # Ny Fanontaniana mipetraka am'zao
+        self.mpilalao = dict() # Array misy ny mpilalao
         self.faharetany = 30  # fanoroana interval
         self.sala = 100  # point par level
         # Ny point azo dia zaraina amin'ny fotoana lasa
         # connect to database
-        self.angona = os.path.dirname(os.path.realpath(__file__)) + '/db/lalao.db'
+        self.angona = ANGONA
         self.dingana = 1
 
     def start(self, bot, trigger):
