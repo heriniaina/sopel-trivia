@@ -2,7 +2,6 @@
 """Trivia module"""
 # Copyright 2016 Hery Eugene
 
-import os
 import re
 import sqlite3
 import time
@@ -12,13 +11,7 @@ import sopel.module
 from sopel.module import rule, event, priority, thread
 from sopel.tools import Identifier, events
 
-####
-# config
-# I will move this to a config file
-####
-
-EFITRA = "#lalaotest"  # Channel for the bot. Only accept commands here
-ANGONA = os.path.dirname(os.path.realpath(__file__)) + '/db/trivia.db'  # Database filename
+import config #you have to copy config.dist.py into config.py
 
 TENY = {
     'EFA_MANDEHA': '\x0300,01Efa mandeha ny lalao natombok\'i %s!',
