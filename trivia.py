@@ -39,7 +39,7 @@ TENY = {
 
 
 class Trivia():
-    def __init__(self, bot):
+    def __init__(self):
         self.nanomboka = False # Efa nanomboka ve ny lalao?
         self.mpanomboka = "" # Iza no nanomboka azy?
         self.mandeha = dict() # Ny Fanontaniana mipetraka am'zao
