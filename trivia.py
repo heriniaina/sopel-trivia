@@ -2,16 +2,14 @@
 """Trivia module"""
 # Copyright 2016 Hery Eugene
 
-import re
-import sqlite3
-import time
+import re, json, sqlite3, time, os
 from datetime import datetime, timedelta
 
 import sopel.module
 from sopel.module import rule, event, priority, thread
 from sopel.tools import Identifier, events
 
-import config #you have to copy config.dist.py into config.py
+
 
 TENY = {
     'EFA_MANDEHA': '\x0300,01Efa mandeha ny lalao natombok\'i %s!',
@@ -31,6 +29,8 @@ TENY = {
     'FILAHARANA': 'Ny voalohany nandritra ny herinandro dia i \x02%s\x0F nahazo isa \x02\x0304%s\x03\x0F, nandritra ity volana ity dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F, nandritra ny taona dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F, ary hatramin\'izay dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F',
 }
 
+with open(os.path.dirname(os.path.realpath(__file__)) + '/config.json') as json_data_file:
+    config = json.load(json_data_file)
 
 class Trivia():
     def __init__(self):
@@ -43,7 +43,7 @@ class Trivia():
         self.sala = 100  # point par level
         # Ny point azo dia zaraina amin'ny fotoana lasa
         # connect to database
-        self.angona = ANGONA
+
         self.dingana = 1
 
         self.filaharana = {
@@ -67,7 +67,7 @@ class Trivia():
         }
 
     def start(self, bot, trigger):
-        if trigger.sender != EFITRA:
+        if trigger.sender != config['room']:
             return
         if self.nanomboka:
             bot.say(TENY['EFA_MANDEHA'] % self.mpanomboka)
@@ -153,7 +153,7 @@ class Trivia():
 
     def connect(self):
         """Return a raw database connection object."""
-        return sqlite3.connect(self.angona)
+        return sqlite3.connect(config['trivia_db'])
 
     def execute(self, *args, **kwargs):
         """Execute an arbitrary SQL query against the database.
@@ -165,7 +165,7 @@ class Trivia():
             return cur.execute(*args, **kwargs)
 
     def stop(self, bot, trigger):
-        if trigger.sender != EFITRA:
+        if trigger.sender != config['room']:
             return
         if trigger.admin or self.nanomboka:
             self.mandeha = {}
@@ -178,7 +178,7 @@ class Trivia():
             return True
 
     def reply(self, bot, trigger):
-        if trigger.sender != EFITRA:
+        if trigger.sender != config['room']:
             return
         if not self.mandeha:
             return
@@ -208,10 +208,10 @@ class Trivia():
                 self.execute("INSERT INTO mpilalao (nick, isa, daty) VALUES (?, ?, ?)",
                              [trigger.nick, self.point, daty])
 
-                self.display_stats(bot, EFITRA)
+                self.display_stats(bot, config['room'])
 
     def join(self, bot, trigger):
-        if trigger.sender != EFITRA or trigger.nick == bot.nick:
+        if trigger.sender != config['room'] or trigger.nick == bot.nick:
             return
 
         # tehirizina amin'ny array users
@@ -237,7 +237,7 @@ class Trivia():
         if not channels:
             return
         channel = Identifier(channels.group(1))
-        if channel != EFITRA:
+        if channel != config['room']:
             return
 
         names = trigger.split()
@@ -256,7 +256,7 @@ class Trivia():
                 self.mpilalao[total[0]]['isa'] = total[1]
 
     def stats(self, bot):
-        if EFITRA in bot.channels:
+        if config['room'] in bot.channels:
 
             if self.dingana < 2:
                 # weekly
