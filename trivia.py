@@ -17,8 +17,8 @@ from sopel.tools import Identifier, events
 # I will move this to a config file
 ####
 
-EFITRA = "#lalao" #Channel for the bot. Only accept commands here
-ANGONA = os.path.dirname(os.path.realpath(__file__)) + '/db/trivia.db'#Database filename
+EFITRA = "#lalaotest"  # Channel for the bot. Only accept commands here
+ANGONA = os.path.dirname(os.path.realpath(__file__)) + '/db/trivia.db'  # Database filename
 
 TENY = {
     'EFA_MANDEHA': '\x0300,01Efa mandeha ny lalao natombok\'i %s!',
@@ -33,23 +33,45 @@ TENY = {
     'VALINY': 'Ny valiny dia: \x02\x0304%s\x03\x0F',
     'VALINY_MARINA': '\x0303MARINA\x03, \x02\x0304%s\x03\x0F no nahita ny valiny <\x02%s\x0F> tao anatin\'ny \x02%s\x0F segondra ary nahazo isa \x02%s\x0F. Ny isa azony androany dia \x02%s\x0F',
     'NAHAZO_ISA': 'Nahazo isa \x02%s\x0F',
-    'ISA_AZO_ANDROANY': 'Isa azony androany dia '
-
+    'ISA_AZO_ANDROANY': 'Isa azony androany dia ',
+    'TSISY': 'mbola sy nisy',
+    'FILAHARANA': 'Ny voalohany nandritra ny herinandro dia i \x02%s\x0F nahazo isa \x02\x0304%s\x03\x0F, nandritra ity volana ity dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F, nandritra ny taona dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F, ary hatramin\'izay dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F',
 }
 
 
 class Trivia():
     def __init__(self):
-        self.nanomboka = False # Efa nanomboka ve ny lalao?
-        self.mpanomboka = "" # Iza no nanomboka azy?
-        self.mandeha = dict() # Ny Fanontaniana mipetraka am'zao
-        self.mpilalao = dict() # Array misy ny mpilalao
+        self.nanomboka = False  # Efa nanomboka ve ny lalao?
+        self.mpanomboka = ""  # Iza no nanomboka azy?
+        self.mandeha = dict()  # Ny Fanontaniana mipetraka am'zao
+        self.mpilalao = dict()  # Array misy ny mpilalao
+        self.filaharana = dict()  # fitehirizana ny ambony indrindra
         self.faharetany = 30  # fanoroana interval
         self.sala = 100  # point par level
         # Ny point azo dia zaraina amin'ny fotoana lasa
         # connect to database
         self.angona = ANGONA
         self.dingana = 1
+
+        self.filaharana = {
+            'id': None,
+            'herinandro': {
+                'nick': TENY['TSISY'],
+                'isa': 0
+            },
+            'volana': {
+                'nick': TENY['TSISY'],
+                'isa': 0
+            },
+            'taona': {
+                'nick': TENY['TSISY'],
+                'isa': 0
+            },
+            'hatrizay': {
+                'nick': TENY['TSISY'],
+                'isa': 0
+            },
+        }
 
     def start(self, bot, trigger):
         if trigger.sender != EFITRA:
@@ -193,6 +215,8 @@ class Trivia():
                 self.execute("INSERT INTO mpilalao (nick, isa, daty) VALUES (?, ?, ?)",
                              [trigger.nick, self.point, daty])
 
+                self.display_stats(bot, EFITRA)
+
     def join(self, bot, trigger):
         if trigger.sender != EFITRA or trigger.nick == bot.nick:
             return
@@ -289,6 +313,51 @@ class Trivia():
         else:
             self.execute("INSERT INTO statistika (nick, " + field + ") VALUES (?, ?)", [nick, value])
 
+    def display_stats(self, bot, dest):
+        # alaina isan'ora fotsiny
+        if self.filaharana['id'] != datetime.now().hour:
+            alatsinainy = datetime.today() - timedelta(days=datetime.today().weekday())
+            alatsinainy = alatsinainy.replace(hour=0, minute=0, second=0)
+            row = self.execute(
+                "SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick ORDER BY SUM(isa) LIMIT 1",
+                [alatsinainy]).fetchone()
+            self.filaharana['herinandro']['nick'] = row[0]
+            self.filaharana['herinandro']['isa'] = row[1]
+
+            volana = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            row = self.execute(
+                "SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick  ORDER BY SUM(isa) LIMIT 1",
+                [volana]).fetchone()
+            self.filaharana['volana']['nick'] = row[0]
+            self.filaharana['volana']['isa'] = row[1]
+
+            taona = datetime.now().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+            row = self.execute(
+                "SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick ORDER BY SUM(isa) LIMIT 1",
+                [taona]).fetchone()
+            self.filaharana['taona']['nick'] = row[0]
+            self.filaharana['taona']['isa'] = row[1]
+
+            row = self.execute("SELECT nick, SUM(isa) FROM mpilalao GROUP BY nick").fetchone()
+            self.filaharana['hatrizay']['nick'] = row[0]
+            self.filaharana['hatrizay']['isa'] = row[1]
+
+            self.filaharana['id'] = datetime.now().day
+
+            bot.say(TENY['FILAHARANA'] % (
+                self.filaharana['herinandro']['nick'],
+                self.filaharana['herinandro']['isa'],
+                self.filaharana['volana']['nick'],
+                self.filaharana['volana']['isa'],
+                self.filaharana['taona']['nick'],
+                self.filaharana['taona']['isa'],
+                self.filaharana['hatrizay']['nick'],
+                self.filaharana['hatrizay']['isa'],
+            ), dest)
+
+    def top(self, bot, trigger):
+        self.display_stats(bot, trigger.nick)
+
 
 tvb = Trivia()
 
@@ -309,6 +378,11 @@ def lalao_stop(bot, trigger):
     tvb.stop(bot, trigger)
 
 
+@rule('!top$')
+def lalao_top(bot, trigger):
+    tvb.top(bot, trigger)
+
+
 @rule('^[^\!\.]')  # all but commands
 @priority('low')
 def lalao_reply(bot, trigger):
@@ -323,6 +397,6 @@ def handle_names(bot, trigger):
     tvb.names(bot, trigger)
 
 
-@sopel.module.interval(60)
+@sopel.module.interval(900)
 def statistics(bot):
     tvb.stats(bot)

@@ -15,3 +15,4 @@ Sopel module to have a quizz in your channel
 
 ## Commandes
 __!lalao__: Start the game
+__!top__: Hit
