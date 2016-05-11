@@ -27,6 +27,8 @@ TENY = {
     'ISA_AZO_ANDROANY': 'Isa azony androany dia ',
     'TSISY': 'mbola sy nisy',
     'FILAHARANA': 'Ny voalohany nandritra ny herinandro dia i \x02%s\x0F nahazo isa \x02\x0304%s\x03\x0F, nandritra ity volana ity dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F, nandritra ny taona dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F, ary hatramin\'izay dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F',
+    'FIARAHABANA': 'Tonga soa eto amin\'ny lalao, efa natombok\'i \x02%s\x0F ny lalao. Afaka mandray anjara ianao.',
+    'HANOMBOKA_LALAO': 'Tonga soa eto amin\'ny lalao. Raha hanomboka lalao dia soraty hoe !lalao',
 }
 
 with open(os.path.dirname(os.path.realpath(__file__)) + '/config.json') as json_data_file:
@@ -150,6 +152,7 @@ class Trivia():
         if len(self.mandeha) == 0:
             return
         bot.say(TENY['VALINY'] % self.mandeha[1])
+        self.mandeha = dict()
 
     def connect(self):
         """Return a raw database connection object."""
@@ -228,6 +231,13 @@ class Trivia():
             'niditra': datetime.now(),
             'isa': isa
         }
+        #andefasana hafatra momba ny lalao
+        if len(self.mandeha) > 0:
+            bot.say(TENY['FIARAHABANA'] % self.mpanomboka)
+        else:
+            bot.say(TENY['HAANOMBOKA_LALAO'] 
+            
+        
 
     def names(self, bot, trigger):
         """
