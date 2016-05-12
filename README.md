@@ -15,8 +15,11 @@ Sopel module to have a quizz in your channel
 
 
 ## Commandes
-__!lalao__: Start the game
-__!top__: Hit
+* __!start__: Start the game (Configurable inside config.json)
+* __!stop__: Stop the game ( -"- )
+* __!top__: Hit
 
 ## To do list
 * Separate database for quizz and stats
+* Have a more detailed user ranks
+* announcing the game on main specified chan
