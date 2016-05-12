@@ -26,6 +26,8 @@ STRINGS = {
         'ISA_AZO_ANDROANY': u'Isa azony androany dia ',
         'TSISY': u'mbola sy nisy',
         'FILAHARANA': u'Ny voalohany nandritra ny herinandro dia i \x02%s\x0F nahazo isa \x02\x0304%s\x03\x0F, nandritra ity volana ity dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F, nandritra ny taona dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F, ary hatramin\'izay dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F',
+        'FIARAHABANA': 'Tonga soa eto amin\'ny lalao, efa natombok\'i \x02%s\x0F ny lalao. Afaka mandray anjara ianao.',
+        'HANOMBOKA_LALAO': 'Tonga soa eto amin\'ny lalao. Raha hanomboka lalao dia soraty hoe \x02%s\x0F',
     },
     'fr': {
         'EFA_MANDEHA': u'\x0300,01Le quizz a déjà été commencé par %s!',
@@ -43,6 +45,8 @@ STRINGS = {
         'ISA_AZO_ANDROANY': u'Ses points pour aujourd\'hui ',
         'TSISY': u'encore vide',
         'FILAHARANA': u'Premier cette semaine \x02%s\x0F avec \x02\x0304%s\x03\x0F points, durant ce mois \x02%s\x0F, avec \x02\x0304%s\x03\x0F points, premier de l\'année \x02%s\x0F, avec \x02\x0304%s\x03\x0F points, et depuis le commencement: \x02%s\x0F, avec \x02\x0304%s\x03\x0F points',
+        'FIARAHABANA': u'Bienvenue sur le salon, \x02%s\x0F a déjà commencé le quizz. Tu peux y participer tout de suite.',
+        'HANOMBOKA_LALAO': u'Bienvenue sur le salon. Pour commencer le quizz utilise \x02%s\x0F',
     }
 
 }
@@ -252,6 +256,12 @@ class Trivia():
             'niditra': datetime.now(),
             'isa': isa
         }
+
+        # andefasana hafatra momba ny lalao
+        if len(self.mandeha) > 0:
+            bot.notice(TENY['FIARAHABANA'] % self.mpanomboka, trigger.nick)
+        else:
+            bot.notice(TENY['HANOMBOKA_LALAO'], (trigger.nick, start_command))
 
     def names(self, bot, trigger):
         """
