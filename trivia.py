@@ -347,26 +347,26 @@ class Trivia():
             alatsinainy = datetime.today() - timedelta(days=datetime.today().weekday())
             alatsinainy = alatsinainy.replace(hour=0, minute=0, second=0)
             row = self.execute(
-                "SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick ORDER BY SUM(isa) LIMIT 1",
+                "SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick ORDER BY SUM(isa) DESC LIMIT 1",
                 [alatsinainy]).fetchone()
             self.filaharana['herinandro']['nick'] = row[0]
             self.filaharana['herinandro']['isa'] = row[1]
 
             volana = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             row = self.execute(
-                "SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick  ORDER BY SUM(isa) LIMIT 1",
+                "SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick  ORDER BY SUM(isa) DESC LIMIT 1",
                 [volana]).fetchone()
             self.filaharana['volana']['nick'] = row[0]
             self.filaharana['volana']['isa'] = row[1]
 
             taona = datetime.now().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
             row = self.execute(
-                "SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick ORDER BY SUM(isa) LIMIT 1",
+                "SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick ORDER BY SUM(isa) DESC LIMIT 1",
                 [taona]).fetchone()
             self.filaharana['taona']['nick'] = row[0]
             self.filaharana['taona']['isa'] = row[1]
 
-            row = self.execute("SELECT nick, SUM(isa) FROM mpilalao GROUP BY nick").fetchone()
+            row = self.execute("SELECT nick, SUM(isa) FROM mpilalao GROUP BY nick ORDER BY SUM(isa) DESC LIMIT 1").fetchone()
             self.filaharana['hatrizay']['nick'] = row[0]
             self.filaharana['hatrizay']['isa'] = row[1]
 
