@@ -9,8 +9,6 @@ import sopel.module
 from sopel.module import rule, event, priority, thread
 from sopel.tools import Identifier, events
 
-
-
 TENY = {
     'EFA_MANDEHA': '\x0300,01Efa mandeha ny lalao natombok\'i %s!',
     'NANOMBOKA': '\x0300,01 Nanomboka ny lalao i %s',
@@ -28,11 +26,12 @@ TENY = {
     'TSISY': 'mbola sy nisy',
     'FILAHARANA': 'Ny voalohany nandritra ny herinandro dia i \x02%s\x0F nahazo isa \x02\x0304%s\x03\x0F, nandritra ity volana ity dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F, nandritra ny taona dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F, ary hatramin\'izay dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F',
     'FIARAHABANA': 'Tonga soa eto amin\'ny lalao, efa natombok\'i \x02%s\x0F ny lalao. Afaka mandray anjara ianao.',
-    'HANOMBOKA_LALAO': 'Tonga soa eto amin\'ny lalao. Raha hanomboka lalao dia soraty hoe !lalao',
+    'HANOMBOKA_LALAO': 'Tonga soa eto amin\'ny lalao. Raha hanomboka lalao dia soraty hoe \x02!lalao\x0F',
 }
 
 with open(os.path.dirname(os.path.realpath(__file__)) + '/config.json') as json_data_file:
     config = json.load(json_data_file)
+
 
 class Trivia():
     def __init__(self):
@@ -231,13 +230,11 @@ class Trivia():
             'niditra': datetime.now(),
             'isa': isa
         }
-        #andefasana hafatra momba ny lalao
+        # andefasana hafatra momba ny lalao
         if len(self.mandeha) > 0:
-            bot.say(TENY['FIARAHABANA'] % self.mpanomboka)
+            bot.notice(TENY['FIARAHABANA'] % self.mpanomboka, trigger.nick)
         else:
-            bot.say(TENY['HAANOMBOKA_LALAO'] 
-            
-        
+            bot.notice(TENY['HANOMBOKA_LALAO'], trigger.nick)
 
     def names(self, bot, trigger):
         """
@@ -361,6 +358,23 @@ class Trivia():
     def top(self, bot, trigger):
         self.display_stats(bot, trigger.nick)
 
+    def autostart(self, bot):
+        # Atomboka ny lalao rehefa elaela tsy mandeha
+        if self.nanomboka:
+            return
+        bot.say(TENY['NANOMBOKA'] % bot.nick)
+        self.mpanomboka = bot.nick
+        self.nanomboka = True
+
+        # ilaina amin'ny play sy stop
+        pseudotrigger = {
+            'nick': bot.nick,
+            'admin': bot.admin,
+            'sender': config['room'],
+        }
+        while self.nanomboka:
+            self.play(bot, pseudotrigger)
+
 
 tvb = Trivia()
 
@@ -403,3 +417,4 @@ def handle_names(bot, trigger):
 @sopel.module.interval(900)
 def statistics(bot):
     tvb.stats(bot)
+    tvb.autostart(bot)
