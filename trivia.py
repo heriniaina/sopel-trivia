@@ -9,28 +9,52 @@ import sopel.module
 from sopel.module import rule, event, priority, thread
 from sopel.tools import Identifier, events
 
+STRINGS = {
+    'mg': {
+        'EFA_MANDEHA': u'\x0300,01Efa mandeha ny lalao natombok\'i %s!',
+        'NANOMBOKA': u'\x0300,01 Nanomboka ny lalao i %s',
+        'NIJANONA': u'\x0300,01 Najanon\'i %s ny lalao.',
+        'FANONTANIANA': u'\x02Fanontaniana :\x0F %s',
+        'FANONTANIANA_DISO': u'Tsy ara-dalàna ny fanontaniana voaray fa avereno indray ny !lalao',
+        'VALINY_TSY_METY': u'Tsy ara-dalàna ny valim-panontaniana voaray ka avereno indray',
+        'TORO_1': u'\x02\x0303Fanoroana 1 :\x03\x0F %s (litera %s)',
+        'TORO_2': u'\x02\x0303Fanoroana 2 :\x03\x0F %s',
+        'TORO_3': u'\x02\x0303Fanoroana 3 :\x03\x0F %s',
+        'VALINY': u'Ny valiny dia: \x02\x0304%s\x03\x0F',
+        'VALINY_MARINA': u'\x0303MARINA\x03, \x02\x0304%s\x03\x0F no nahita ny valiny <\x02%s\x0F> tao anatin\'ny \x02%s\x0F segondra ary nahazo isa \x02%s\x0F. Ny isa azony androany dia \x02%s\x0F',
+        'NAHAZO_ISA': u'Nahazo isa \x02%s\x0F',
+        'ISA_AZO_ANDROANY': u'Isa azony androany dia ',
+        'TSISY': u'mbola sy nisy',
+        'FILAHARANA': u'Ny voalohany nandritra ny herinandro dia i \x02%s\x0F nahazo isa \x02\x0304%s\x03\x0F, nandritra ity volana ity dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F, nandritra ny taona dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F, ary hatramin\'izay dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F',
+    },
+    'fr': {
+        'EFA_MANDEHA': u'\x0300,01Le quizz a déjà été commencé par %s!',
+        'NANOMBOKA': u'\x0300,01 Quizz commencé par %s \x03',
+        'NIJANONA': u'\x0300,01 Quizz arreté par %s. \x03',
+        'FANONTANIANA': u'\x02Question :\x0F %s',
+        'FANONTANIANA_DISO': u'La question n\'est pas valide',
+        'VALINY_TSY_METY': u'La réponse n\'est pas valide.',
+        'TORO_1': u'\x02\x0303Suggestion 1 :\x03\x0F %s (%s lettres)',
+        'TORO_2': u'\x02\x0303Suggestion 2 :\x03\x0F %s',
+        'TORO_3': u'\x02\x0303Suggestion 3 :\x03\x0F %s',
+        'VALINY': u'La réponse est: \x02\x0304%s\x03\x0F',
+        'VALINY_MARINA': u'\x0303EXACT\x03, \x02\x0304%s\x03\x0F a trouvé la bonne réponse <\x02%s\x0F> en \x02%s\x0F secondes avec \x02%s\x0F points. Son score d\'aujourd\'hui est de \x02%s\x0F points.',
+        'NAHAZO_ISA': u'Points \x02%s\x0F',
+        'ISA_AZO_ANDROANY': u'Ses points pour aujourd\'hui ',
+        'TSISY': u'encore vide',
+        'FILAHARANA': u'Premier cette semaine \x02%s\x0F avec \x02\x0304%s\x03\x0F points, durant ce mois \x02%s\x0F, avec \x02\x0304%s\x03\x0F points, premier de l\'année \x02%s\x0F, avec \x02\x0304%s\x03\x0F points, et depuis le commencement: \x02%s\x0F, avec \x02\x0304%s\x03\x0F points',
+    }
 
-
-TENY = {
-    'EFA_MANDEHA': '\x0300,01Efa mandeha ny lalao natombok\'i %s!',
-    'NANOMBOKA': '\x0300,01 Nanomboka ny lalao i %s',
-    'NIJANONA': '\x0300,01 Najanon\'i %s ny lalao.',
-    'FANONTANIANA': '\x02Fanontaniana :\x0F %s',
-    'FANONTANIANA_DISO': 'Tsy ara-dalàna ny fanontaniana voaray fa avereno indray ny !lalao',
-    'VALINY_TSY_METY': 'Tsy ara-dalàna ny valim-panontaniana voaray ka avereno indray',
-    'TORO_1': '\x02\x0303Fanoroana 1 :\x03\x0F %s (litera %s)',
-    'TORO_2': '\x02\x0303Fanoroana 2 :\x03\x0F %s',
-    'TORO_3': '\x02\x0303Fanoroana 3 :\x03\x0F %s',
-    'VALINY': 'Ny valiny dia: \x02\x0304%s\x03\x0F',
-    'VALINY_MARINA': '\x0303MARINA\x03, \x02\x0304%s\x03\x0F no nahita ny valiny <\x02%s\x0F> tao anatin\'ny \x02%s\x0F segondra ary nahazo isa \x02%s\x0F. Ny isa azony androany dia \x02%s\x0F',
-    'NAHAZO_ISA': 'Nahazo isa \x02%s\x0F',
-    'ISA_AZO_ANDROANY': 'Isa azony androany dia ',
-    'TSISY': 'mbola sy nisy',
-    'FILAHARANA': 'Ny voalohany nandritra ny herinandro dia i \x02%s\x0F nahazo isa \x02\x0304%s\x03\x0F, nandritra ity volana ity dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F, nandritra ny taona dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F, ary hatramin\'izay dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F',
 }
 
 with open(os.path.dirname(os.path.realpath(__file__)) + '/config.json') as json_data_file:
     config = json.load(json_data_file)
+
+start_command = config.setdefault("start_command", "!start")
+stop_command = config.setdefault("stop_command", "!stop")
+lang = config.setdefault("language", "mg")
+TENY = STRINGS[lang]
+
 
 class Trivia():
     def __init__(self):
@@ -361,12 +385,12 @@ def lalao_join(bot, trigger):
     tvb.join(bot, trigger)
 
 
-@rule('!lalao$')
+@rule(config['start_command'] + '$')
 def lalao_start(bot, trigger):
     tvb.start(bot, trigger)
 
 
-@rule('!stop$')
+@rule(config['stop_command'] + '$')
 def lalao_stop(bot, trigger):
     tvb.stop(bot, trigger)
 

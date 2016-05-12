@@ -1,4 +1,7 @@
 {
   "trivia_db": "/db/trivia.db",
-  "room": "#trivia"
+  "room": "#trivia",
+  "start_command": "!start",
+  "stop_command": "!stop",
+  "language": "mg"
 }
