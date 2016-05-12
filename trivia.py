@@ -178,6 +178,7 @@ class Trivia():
         if len(self.mandeha) == 0:
             return
         bot.say(TENY['VALINY'] % self.mandeha[1])
+        self.mandeha = dict()
 
     def connect(self):
         """Return a raw database connection object."""
@@ -395,12 +396,12 @@ def lalao_join(bot, trigger):
     tvb.join(bot, trigger)
 
 
-@rule(config['start_command'] + '$')
+@rule(start_command + '$')
 def lalao_start(bot, trigger):
     tvb.start(bot, trigger)
 
 
-@rule(config['stop_command'] + '$')
+@rule(stop_command + '$')
 def lalao_stop(bot, trigger):
     tvb.stop(bot, trigger)
 
