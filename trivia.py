@@ -196,7 +196,7 @@ class Trivia():
     def stop(self, bot, trigger):
         if trigger.sender != config['room']:
             return
-        if trigger.admin or self.nanomboka:
+        if trigger.admin or self.nanomboka == trigger.nick:
             self.mandeha = {}
             self.nanomboka = False
             self.mpanomboka = ""
