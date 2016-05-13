@@ -6,7 +6,7 @@ import re, json, sqlite3, time, os
 from datetime import datetime, timedelta
 
 import sopel.module
-from sopel.module import rule, event, priority, thread
+from sopel.module import rule, event, priority, thread, example
 from sopel.tools import Identifier, events
 
 STRINGS = {
@@ -28,6 +28,7 @@ STRINGS = {
         'FILAHARANA': u'Ny voalohany nandritra ny herinandro dia i \x02%s\x0F nahazo isa \x02\x0304%s\x03\x0F, nandritra ity volana ity dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F, nandritra ny taona dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F, ary hatramin\'izay dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F',
         'FIARAHABANA': 'Tonga soa eto amin\'ny lalao, efa natombok\'i \x02%s\x0F ny lalao. Afaka mandray anjara ianao.',
         'HANOMBOKA_LALAO': 'Tonga soa eto amin\'ny lalao. Raha hanomboka lalao dia soraty hoe \x02%s\x0F',
+        'FILAZANA': 'Efa mandeha ny lalao. Raha te handray anjara dia soraty hoe \x02/join %s ',
     },
     'fr': {
         'EFA_MANDEHA': u'\x0300,01Le quizz a déjà été commencé par %s!',
@@ -47,6 +48,7 @@ STRINGS = {
         'FILAHARANA': u'Premier cette semaine \x02%s\x0F avec \x02\x0304%s\x03\x0F points, durant ce mois \x02%s\x0F, avec \x02\x0304%s\x03\x0F points, premier de l\'année \x02%s\x0F, avec \x02\x0304%s\x03\x0F points, et depuis le commencement: \x02%s\x0F, avec \x02\x0304%s\x03\x0F points',
         'FIARAHABANA': u'Bienvenue sur le salon, \x02%s\x0F a déjà commencé le quizz. Tu peux y participer tout de suite.',
         'HANOMBOKA_LALAO': u'Bienvenue sur le salon. Pour commencer le quizz utilise \x02%s\x0F',
+        'FILAZANA': u'Le jeu du quizz est disponible. Pour jouer joindre le canal avec \x02/join %s'
     }
 
 }
@@ -57,6 +59,7 @@ with open(os.path.dirname(os.path.realpath(__file__)) + '/config.json') as json_
 start_command = config.setdefault("start_command", "!start")
 stop_command = config.setdefault("stop_command", "!stop")
 lang = config.setdefault("language", "mg")
+config['room'] = config.setdefault("room", "#trivia")
 TENY = STRINGS[lang]
 
 
@@ -397,6 +400,7 @@ def lalao_join(bot, trigger):
 
 
 @rule(start_command + '$')
+@example(start_command + ' raha hanomboka lalao')
 def lalao_start(bot, trigger):
     tvb.start(bot, trigger)
 
@@ -428,3 +432,9 @@ def handle_names(bot, trigger):
 @sopel.module.interval(900)
 def statistics(bot):
     tvb.stats(bot)
+
+@sopel.module.interval(920)
+def announce(bot):
+    for channel in bot.channels:
+        if channel != config['room']:
+            bot.msg(channel, TENY['FILAZANA'] % config['room'])
