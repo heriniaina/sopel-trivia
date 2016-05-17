@@ -26,9 +26,17 @@ STRINGS = {
         'ISA_AZO_ANDROANY': u'Isa azony androany dia ',
         'TSISY': u'mbola sy nisy',
         'FILAHARANA': u'Ny voalohany nandritra ny herinandro dia i \x02%s\x0F nahazo isa \x02\x0304%s\x03\x0F, nandritra ity volana ity dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F, nandritra ny taona dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F, ary hatramin\'izay dia i \x02%s\x0F, nahazo isa \x02\x0304%s\x03\x0F',
-        'FIARAHABANA': 'Tonga soa eto amin\'ny lalao, efa natombok\'i \x02%s\x0F ny lalao. Afaka mandray anjara ianao.',
-        'HANOMBOKA_LALAO': 'Tonga soa eto amin\'ny lalao. Raha hanomboka lalao dia soraty hoe \x02%s\x0F',
-        'FILAZANA': 'Efa mandeha ny lalao. Raha te handray anjara dia soraty hoe \x02/join %s ',
+        'FIARAHABANA': u'Tonga soa eto amin\'ny lalao, efa natombok\'i \x02%s\x0F ny lalao. Afaka mandray anjara ianao.',
+        'HANOMBOKA_LALAO': u'Tonga soa eto amin\'ny lalao. Raha hanomboka lalao dia soraty hoe \x02%s\x0F. Raha mila fanampiana dia \x02%s\x0F',
+        'FILAZANA': u'Efa mandeha ny lalao. Raha te handray anjara dia soraty hoe \x02/join %s ',
+        'ISA_HATRIZAY': u'Ny isa azon\'i \x02%s\x0F nandritra ny herinandro: \x02\x0304%s\x03\x0F, ny volana: \x02\x0304%s\x03\x0F, ny taona: \x02\x0304%s\x03\x0F, hatrizay: \x02\x0304%s\x03\x0F.',
+        'TSY_MANANA_ISA': u'Mbola tsy manana isa voatahiry i %s',
+        'FANOROANA': {
+            u'Ireo baiko miasa :',
+            u'!top : Ireo namana voalohany',
+            u'!place : Ny isa azonao voatahiry',
+        }
+
     },
     'fr': {
         'EFA_MANDEHA': u'\x0300,01Le quizz a déjà été commencé par %s!',
@@ -47,8 +55,15 @@ STRINGS = {
         'TSISY': u'encore vide',
         'FILAHARANA': u'Premier cette semaine \x02%s\x0F avec \x02\x0304%s\x03\x0F points, durant ce mois \x02%s\x0F, avec \x02\x0304%s\x03\x0F points, premier de l\'année \x02%s\x0F, avec \x02\x0304%s\x03\x0F points, et depuis le commencement: \x02%s\x0F, avec \x02\x0304%s\x03\x0F points',
         'FIARAHABANA': u'Bienvenue sur le salon, \x02%s\x0F a déjà commencé le quizz. Tu peux y participer tout de suite.',
-        'HANOMBOKA_LALAO': u'Bienvenue sur le salon. Pour commencer le quizz utilise \x02%s\x0F',
-        'FILAZANA': u'Le jeu du quizz est disponible. Pour jouer joindre le canal avec \x02/join %s'
+        'HANOMBOKA_LALAO': u'Bienvenue sur le salon. Pour commencer le quizz utilise \x02%s\x0F. Si tu as besoin d\'aide utilise la commande \x02%s\x0F',
+        'FILAZANA': u'Le jeu du quizz est disponible. Pour jouer joindre le canal avec \x02/join %s',
+        'ISA_HATRIZAY': u'Les points gagnés par \x02%s\x0F cette semaine: \x02\x0304%s\x03\x0F, ce mois: \x02\x0304%s\x03\x0F, cette année: \x02\x0304%s\x03\x0F, depuis le debut: \x02\x0304%s\x03\x0F.',
+        'TSY_MANANA_ISA': u'%s n\'a pas encore de statistique dans la base de données.',
+        'FANOROANA': {u'Commandes utilisées :',
+            u'!top : Les premiers rangs',
+            u'!place : Tes points',
+                      }
+
     }
 
 }
@@ -58,6 +73,8 @@ with open(os.path.dirname(os.path.realpath(__file__)) + '/config.json') as json_
 
 start_command = config.setdefault("start_command", "!start")
 stop_command = config.setdefault("stop_command", "!stop")
+help_command = config.setdefault("help_command", "!aide")
+
 lang = config.setdefault("language", "mg")
 config['room'] = config.setdefault("room", "#trivia")
 TENY = STRINGS[lang]
@@ -74,28 +91,12 @@ class Trivia():
         self.sala = 100  # point par level
         # Ny point azo dia zaraina amin'ny fotoana lasa
         # connect to database
+        self.toerana = dict()
 
         self.dingana = 1
 
-        self.filaharana = {
-            'id': None,
-            'herinandro': {
-                'nick': TENY['TSISY'],
-                'isa': 0
-            },
-            'volana': {
-                'nick': TENY['TSISY'],
-                'isa': 0
-            },
-            'taona': {
-                'nick': TENY['TSISY'],
-                'isa': 0
-            },
-            'hatrizay': {
-                'nick': TENY['TSISY'],
-                'isa': 0
-            },
-        }
+        self.filaharana = dict()
+
 
     def start(self, bot, trigger):
         if trigger.sender != config['room']:
@@ -265,7 +266,7 @@ class Trivia():
         if len(self.mandeha) > 0:
             bot.notice(TENY['FIARAHABANA'] % self.mpanomboka, trigger.nick)
         else:
-            bot.notice(TENY['HANOMBOKA_LALAO'], (trigger.nick, start_command))
+            bot.notice(TENY['HANOMBOKA_LALAO'] % (start_command, help_command), trigger.nick)
 
     def names(self, bot, trigger):
         """
@@ -344,50 +345,78 @@ class Trivia():
         else:
             self.execute("INSERT INTO statistika (nick, " + field + ") VALUES (?, ?)", [nick, value])
 
+
+
     def display_stats(self, bot, dest):
         # alaina isan'ora fotsiny
-        if self.filaharana['id'] != datetime.now().hour:
+        if id not in self.filaharana or self.filaharana['id'] != datetime.now().hour:
             alatsinainy = datetime.today() - timedelta(days=datetime.today().weekday())
             alatsinainy = alatsinainy.replace(hour=0, minute=0, second=0)
             row = self.execute(
-                "SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick ORDER BY SUM(isa) DESC LIMIT 1",
+                "SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick ORDER BY SUM(isa) DESC LIMIT 10",
                 [alatsinainy]).fetchone()
-            self.filaharana['herinandro']['nick'] = row[0]
-            self.filaharana['herinandro']['isa'] = row[1]
+            if row == None :
+               row = [TENY['TSISY'], 0]
+
+            self.filaharana['herinandro'] = row
 
             volana = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             row = self.execute(
-                "SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick  ORDER BY SUM(isa) DESC LIMIT 1",
+                "SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick  ORDER BY SUM(isa) DESC LIMIT 10",
                 [volana]).fetchone()
-            self.filaharana['volana']['nick'] = row[0]
-            self.filaharana['volana']['isa'] = row[1]
+            self.filaharana['volana'] = row
 
             taona = datetime.now().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
             row = self.execute(
-                "SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick ORDER BY SUM(isa) DESC LIMIT 1",
+                "SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick ORDER BY SUM(isa) DESC LIMIT 10",
                 [taona]).fetchone()
-            self.filaharana['taona']['nick'] = row[0]
-            self.filaharana['taona']['isa'] = row[1]
+            self.filaharana['taona'] = row
 
-            row = self.execute("SELECT nick, SUM(isa) FROM mpilalao GROUP BY nick ORDER BY SUM(isa) DESC LIMIT 1").fetchone()
-            self.filaharana['hatrizay']['nick'] = row[0]
-            self.filaharana['hatrizay']['isa'] = row[1]
+            rows = self.execute(
+                "SELECT nick, SUM(isa) FROM mpilalao GROUP BY nick ORDER BY SUM(isa) DESC LIMIT 10").fetchall()
+            self.filaharana['hatrizay'] = row
 
-            self.filaharana['id'] = datetime.now().day
+            self.filaharana['id'] = datetime.now().hour
 
             bot.say(TENY['FILAHARANA'] % (
-                self.filaharana['herinandro']['nick'],
-                self.filaharana['herinandro']['isa'],
-                self.filaharana['volana']['nick'],
-                self.filaharana['volana']['isa'],
-                self.filaharana['taona']['nick'],
-                self.filaharana['taona']['isa'],
-                self.filaharana['hatrizay']['nick'],
-                self.filaharana['hatrizay']['isa'],
+                self.filaharana['herinandro'][0],
+                self.filaharana['herinandro'][1],
+                self.filaharana['volana'][0],
+                self.filaharana['volana'][1],
+                self.filaharana['taona'][0],
+                self.filaharana['taona'][1],
+                self.filaharana['hatrizay'][0],
+                self.filaharana['hatrizay'][1],
             ), dest)
 
     def top(self, bot, trigger):
         self.display_stats(bot, trigger.nick)
+        return
+
+    def place(self, bot, trigger, nick):
+        print nick
+        if nick not in self.toerana:
+            row = self.execute("SELECT nick, herinandro, volana, taona, hatrizay FROM statistika WHERE nick = ?", [nick]).fetchone()
+            if len(row) > 0 :
+                self.toerana[row[0]] = row
+
+        #rehefa ao am'zay
+        if nick in self.toerana:
+            bot.say(TENY['ISA_HATRIZAY'] % (
+                nick,
+                self.toerana[nick][1],
+                self.toerana[nick][2],
+                self.toerana[nick][3],
+                self.toerana[nick][4]
+            ), trigger.nick)
+
+        else:
+            bot.say(TENY['TSY_MANANA_ISA'] % trigger.nick)
+        return
+
+    def aide(self, bot,trigger):
+        for term in TENY['FANOROANA']:
+            bot.say(term, trigger.nick)
 
 
 tvb = Trivia()
@@ -414,6 +443,22 @@ def lalao_stop(bot, trigger):
 def lalao_top(bot, trigger):
     tvb.top(bot, trigger)
 
+@rule('!place\s?(.*)?\s?')
+def lalao_place(bot, trigger):
+
+    if not trigger.group(1):
+        nick = trigger.nick
+    else:
+        nick = trigger.group(1).strip()
+    print nick
+    tvb.place(bot, trigger, nick)
+
+
+
+@rule(help_command + '$')
+def lalao_aide(bot, trigger):
+    tvb.aide(bot, trigger)
+
 
 @rule('^[^\!\.]')  # all but commands
 @priority('low')
@@ -433,8 +478,10 @@ def handle_names(bot, trigger):
 def statistics(bot):
     tvb.stats(bot)
 
+
 @sopel.module.interval(920)
 def announce(bot):
     for channel in bot.channels:
         if channel != config['room']:
             bot.msg(channel, TENY['FILAZANA'] % config['room'])
+
