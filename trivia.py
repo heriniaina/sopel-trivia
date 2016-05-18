@@ -239,7 +239,7 @@ class Trivia():
 
                 self.point = self.point - ((duration.seconds * 100) / self.faharetany)
                 combined = duration.seconds + duration.microseconds / 1E6
-                if not self.mpilalao[trigger.nick]:
+                if trigger.nick not in self.mpilalao:
                     self.mpilalao[trigger.nick] = {
                         'niditra': datetime.now(),
                         'isa': 0,
