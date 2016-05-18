@@ -35,7 +35,14 @@ STRINGS = {
             u'Ireo baiko miasa :',
             u'!top : Ireo namana voalohany',
             u'!place : Ny isa azonao voatahiry',
-        }
+            u'!top10 : Ny mpilalao 10 voalohany',
+        },
+        'VOALOHANY_HERINANDRO': u'Ny voalohany nandritra ny herinandro dia \x02%s\x0F nahazo isa \x02\x0304%s\x03\x0F',
+        'VOALOHANY_VOLANA': u'Ny voalohany nandritra ny volana dia \x02%s\x0F nahazo isa \x02\x0304%s\x03\x0F',
+        'VOALOHANY_TAONA': u'Ny voalohany nandritra ny taona dia \x02%s\x0F nahazo isa \x02\x0304%s\x03\x0F',
+        'VOALOHANY_HATRIZAY': u'Ny voalohany hatrizay kosa dia \x02%s\x0F nahazo isa \x02\x0304%s\x03\x0F',
+        'FOLO_VOALOHANY_HATRIZAY': u'Ireo mpilalao folo voalohany hatrizay',
+        'LAHARANA_FAHA': u'#%s \x02%s\x0F nahazo isa \x02\x0304%s\x03\x0F',
 
     },
     'fr': {
@@ -62,7 +69,14 @@ STRINGS = {
         'FANOROANA': {u'Commandes utilisées :',
             u'!top : Les premiers rangs',
             u'!place : Tes points',
-                      }
+            u'!top10 : Les dix premiers joueurs',
+                      },
+        'VOALOHANY_HERINANDRO': u'Le top 1 de la semaine est  \x02%s\x0F avec \x02\x0304%s\x03\x0F points',
+        'VOALOHANY_VOLANA': u'Le top 1 du mois est  \x02%s\x0F avec \x02\x0304%s\x03\x0F points',
+        'VOALOHANY_TAONA': u'Le top 1 de l\'année est  \x02%s\x0F avec \x02\x0304%s\x03\x0F points',
+        'VOALOHANY_HATRIZAY': u'Le top 1 depuis le debut est  \x02%s\x0F avec \x02\x0304%s\x03\x0F points',
+        'FOLO_VOALOHANY_HATRIZAY': u'Les 10 premiers joueurs de tous les temps: ',
+        'LAHARANA_FAHA': u'#%s \x02%s\x0F avec \x02\x0304%s\x03\x0F points',
 
     }
 
@@ -92,10 +106,9 @@ class Trivia():
         # Ny point azo dia zaraina amin'ny fotoana lasa
         # connect to database
         self.toerana = dict()
-
         self.dingana = 1
+        self.showstat = 1
 
-        self.filaharana = dict()
 
 
     def start(self, bot, trigger):
@@ -243,6 +256,18 @@ class Trivia():
 
                 self.display_stats(bot, config['room'])
 
+    def display_stats(self, bot, room):
+        #Karazana stats disponibles
+        if self.showstat == 1:
+            #Top
+            self.say_top(bot, room)
+            self.showstat = 2
+        else:
+            #top10
+            self.say_top10(bot, room)
+            self.showstat = 1
+
+
     def join(self, bot, trigger):
         if trigger.sender != config['room'] or trigger.nick == bot.nick:
             return
@@ -307,7 +332,7 @@ class Trivia():
                 for row in rows:
                     if row[0] in self.mpilalao:
                         self.mpilalao[row[0]]['herinandro'] = row[1]
-                        self.updateStat('herinandro', row[0], row[1])
+                        self.update_stats_table('herinandro', row[0], row[1])
                 self.dingana = 2
             elif self.dingana < 3:
                 # monthly
@@ -317,7 +342,7 @@ class Trivia():
                 for row in rows:
                     if row[0] in self.mpilalao:
                         self.mpilalao[row[0]]['volana'] = row[1]
-                        self.updateStat('volana', row[0], row[1])
+                        self.update_stats_table('volana', row[0], row[1])
                 self.dingana = 3
             elif self.dingana < 4:
                 # yearly
@@ -327,7 +352,7 @@ class Trivia():
                 for row in rows:
                     if row[0] in self.mpilalao:
                         self.mpilalao[row[0]]['taona'] = row[1]
-                        self.updateStat('taona', row[0], row[1])
+                        self.update_stats_table('taona', row[0], row[1])
                 self.dingana = 4
             elif self.dingana < 5:
                 # overall
@@ -335,10 +360,10 @@ class Trivia():
                 for row in rows:
                     if row[0] in self.mpilalao:
                         self.mpilalao[row[0]]['hatrizay'] = row[1]
-                        self.updateStat('hatrizay', row[0], row[1])
+                        self.update_stats_table('hatrizay', row[0], row[1])
                 self.dingana = 1
 
-    def updateStat(self, field, nick, value):
+    def update_stats_table(self, field, nick, value):
         user_exist = self.execute("SELECT nick FROM statistika WHERE nick = ?", [nick]).fetchall()
         if len(user_exist) > 0:
             self.execute("UPDATE statistika SET " + field + " = ? WHERE nick = ?", [value, nick])
@@ -347,50 +372,76 @@ class Trivia():
 
 
 
-    def display_stats(self, bot, dest):
+    def update_stats(self):
+        self.filaharana['id'] = datetime.now() - timedelta(minutes=20)
         # alaina isan'ora fotsiny
-        if id not in self.filaharana or self.filaharana['id'] != datetime.now().hour:
+        if id not in self.filaharana or self.filaharana['id'] < datetime.now() - timedelta(minutes=15):
             alatsinainy = datetime.today() - timedelta(days=datetime.today().weekday())
             alatsinainy = alatsinainy.replace(hour=0, minute=0, second=0)
-            row = self.execute(
+            rows = self.execute(
                 "SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick ORDER BY SUM(isa) DESC LIMIT 10",
-                [alatsinainy]).fetchone()
-            if row == None :
-               row = [TENY['TSISY'], 0]
-
-            self.filaharana['herinandro'] = row
+                [alatsinainy]).fetchall()
+            print rows
+            self.filaharana['herinandro'] = rows
 
             volana = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-            row = self.execute(
+            rows = self.execute(
                 "SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick  ORDER BY SUM(isa) DESC LIMIT 10",
-                [volana]).fetchone()
-            self.filaharana['volana'] = row
+                [volana]).fetchall()
+            self.filaharana['volana'] = rows
 
             taona = datetime.now().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
-            row = self.execute(
+            rows = self.execute(
                 "SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick ORDER BY SUM(isa) DESC LIMIT 10",
-                [taona]).fetchone()
-            self.filaharana['taona'] = row
+                [taona]).fetchall()
+            self.filaharana['taona'] = rows
 
             rows = self.execute(
                 "SELECT nick, SUM(isa) FROM mpilalao GROUP BY nick ORDER BY SUM(isa) DESC LIMIT 10").fetchall()
-            self.filaharana['hatrizay'] = row
+            self.filaharana['hatrizay'] = rows
 
-            self.filaharana['id'] = datetime.now().hour
+            self.filaharana['id'] = datetime.now()
 
-            bot.say(TENY['FILAHARANA'] % (
-                self.filaharana['herinandro'][0],
-                self.filaharana['herinandro'][1],
-                self.filaharana['volana'][0],
-                self.filaharana['volana'][1],
-                self.filaharana['taona'][0],
-                self.filaharana['taona'][1],
-                self.filaharana['hatrizay'][0],
-                self.filaharana['hatrizay'][1],
-            ), dest)
+
+
+    def say_top(self, bot, dest):
+        self.update_stats()
+        msg = ""
+        if self.filaharana['herinandro'] != None and len(self.filaharana['herinandro']) > 0:
+            print self.filaharana['herinandro']
+            msg += " - " + TENY['VOALOHANY_HERINANDRO'] % (
+            self.filaharana['herinandro'][0][0], self.filaharana['herinandro'][0][1])
+
+        if self.filaharana['volana'] != None and len(self.filaharana['volana']) > 0:
+            msg += " - " + TENY['VOALOHANY_VOLANA'] % (self.filaharana['volana'][0][0], self.filaharana['volana'][0][1])
+
+        if self.filaharana['taona'] != None and len(self.filaharana['taona']) > 0:
+            msg += " - " + TENY['VOALOHANY_TAONA'] % (self.filaharana['taona'][0][0], self.filaharana['taona'][0][1])
+
+        if self.filaharana['hatrizay'] != None and len(self.filaharana['hatrizay']) > 0:
+            msg += " - " + TENY['VOALOHANY_HATRIZAY'] % (self.filaharana['hatrizay'][0][0], self.filaharana['hatrizay'][0][1])
+
+        if len(msg) == 0:
+            msg += " " + TENY['TSISY']
+        bot.say(msg, dest)
 
     def top(self, bot, trigger):
-        self.display_stats(bot, trigger.nick)
+        self.say_top(bot, trigger.nick)
+        return
+
+    def say_top10(self, bot, dest):
+        self.update_stats()
+
+        if self.filaharana['hatrizay'] != None:
+            msg = TENY['FOLO_VOALOHANY_HATRIZAY']
+            i = 1
+            for user in self.filaharana['hatrizay']:
+                msg += " " + TENY['LAHARANA_FAHA'] % (i, user[0], user[1])
+                i += 1
+
+            bot.say(msg, dest)
+    def top10(self, bot, trigger):
+        self.say_top10(bot,trigger.nick)
         return
 
     def place(self, bot, trigger, nick):
@@ -442,6 +493,10 @@ def lalao_stop(bot, trigger):
 @rule('!top$')
 def lalao_top(bot, trigger):
     tvb.top(bot, trigger)
+
+@rule('!top10$')
+def lalao_top10(bot, trigger):
+    tvb.top10(bot, trigger)
 
 @rule('!place\s?(.*)?\s?')
 def lalao_place(bot, trigger):
