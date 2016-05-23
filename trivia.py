@@ -376,7 +376,7 @@ class Trivia():
             rows = self.execute(
                 "SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick ORDER BY SUM(isa) DESC LIMIT 10",
                 [alatsinainy]).fetchall()
-            print rows
+
             self.filaharana['herinandro'] = rows
 
             volana = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
@@ -401,7 +401,7 @@ class Trivia():
         self.update_stats()
         msg = ""
         if self.filaharana['herinandro'] != None and len(self.filaharana['herinandro']) > 0:
-            print self.filaharana['herinandro']
+            
             msg += " - " + TENY['VOALOHANY_HERINANDRO'] % (
                 self.filaharana['herinandro'][0][0], self.filaharana['herinandro'][0][1])
 
@@ -440,7 +440,7 @@ class Trivia():
         return
 
     def place(self, bot, trigger, nick):
-        print nick
+        
         if nick not in self.toerana:
             row = self.execute("SELECT nick, herinandro, volana, taona, hatrizay FROM statistika WHERE nick = ?",
                                [nick]).fetchone()
