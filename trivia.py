@@ -67,9 +67,9 @@ STRINGS = {
         'ISA_HATRIZAY': u'Les points gagnés par \x02%s\x0F cette semaine: \x02\x0304%s\x03\x0F, ce mois: \x02\x0304%s\x03\x0F, cette année: \x02\x0304%s\x03\x0F, depuis le debut: \x02\x0304%s\x03\x0F.',
         'TSY_MANANA_ISA': u'%s n\'a pas encore de statistique dans la base de données.',
         'FANOROANA': {u'Commandes utilisées :',
-            u'!top : Les premiers rangs',
-            u'!place : Tes points',
-            u'!top10 : Les dix premiers joueurs',
+                      u'!top : Les premiers rangs',
+                      u'!place : Tes points',
+                      u'!top10 : Les dix premiers joueurs',
                       },
         'VOALOHANY_HERINANDRO': u'Le top 1 de la semaine est  \x02%s\x0F avec \x02\x0304%s\x03\x0F points',
         'VOALOHANY_VOLANA': u'Le top 1 du mois est  \x02%s\x0F avec \x02\x0304%s\x03\x0F points',
@@ -108,8 +108,6 @@ class Trivia():
         self.toerana = dict()
         self.dingana = 1
         self.showstat = 1
-
-
 
     def start(self, bot, trigger):
         if trigger.sender != config['room']:
@@ -257,16 +255,15 @@ class Trivia():
                 self.display_stats(bot, config['room'])
 
     def display_stats(self, bot, room):
-        #Karazana stats disponibles
+        # Karazana stats disponibles
         if self.showstat == 1:
-            #Top
+            # Top
             self.say_top(bot, room)
             self.showstat = 2
         else:
-            #top10
+            # top10
             self.say_top10(bot, room)
             self.showstat = 1
-
 
     def join(self, bot, trigger):
         if trigger.sender != config['room'] or trigger.nick == bot.nick:
@@ -370,8 +367,6 @@ class Trivia():
         else:
             self.execute("INSERT INTO statistika (nick, " + field + ") VALUES (?, ?)", [nick, value])
 
-
-
     def update_stats(self):
         self.filaharana['id'] = datetime.now() - timedelta(minutes=20)
         # alaina isan'ora fotsiny
@@ -402,15 +397,13 @@ class Trivia():
 
             self.filaharana['id'] = datetime.now()
 
-
-
     def say_top(self, bot, dest):
         self.update_stats()
         msg = ""
         if self.filaharana['herinandro'] != None and len(self.filaharana['herinandro']) > 0:
             print self.filaharana['herinandro']
             msg += " - " + TENY['VOALOHANY_HERINANDRO'] % (
-            self.filaharana['herinandro'][0][0], self.filaharana['herinandro'][0][1])
+                self.filaharana['herinandro'][0][0], self.filaharana['herinandro'][0][1])
 
         if self.filaharana['volana'] != None and len(self.filaharana['volana']) > 0:
             msg += " - " + TENY['VOALOHANY_VOLANA'] % (self.filaharana['volana'][0][0], self.filaharana['volana'][0][1])
@@ -419,7 +412,8 @@ class Trivia():
             msg += " - " + TENY['VOALOHANY_TAONA'] % (self.filaharana['taona'][0][0], self.filaharana['taona'][0][1])
 
         if self.filaharana['hatrizay'] != None and len(self.filaharana['hatrizay']) > 0:
-            msg += " - " + TENY['VOALOHANY_HATRIZAY'] % (self.filaharana['hatrizay'][0][0], self.filaharana['hatrizay'][0][1])
+            msg += " - " + TENY['VOALOHANY_HATRIZAY'] % (
+            self.filaharana['hatrizay'][0][0], self.filaharana['hatrizay'][0][1])
 
         if len(msg) == 0:
             msg += " " + TENY['TSISY']
@@ -440,18 +434,22 @@ class Trivia():
                 i += 1
 
             bot.say(msg, dest)
+
     def top10(self, bot, trigger):
-        self.say_top10(bot,trigger.nick)
+        self.say_top10(bot, trigger.nick)
         return
 
     def place(self, bot, trigger, nick):
         print nick
         if nick not in self.toerana:
-            row = self.execute("SELECT nick, herinandro, volana, taona, hatrizay FROM statistika WHERE nick = ?", [nick]).fetchone()
-            if len(row) > 0 :
+            row = self.execute("SELECT nick, herinandro, volana, taona, hatrizay FROM statistika WHERE nick = ?",
+                               [nick]).fetchone()
+            if row == None or len(row) == 0:
+                self.toerana[nick] = [nick, 0, 0, 0, 0]
+            else:
                 self.toerana[row[0]] = row
 
-        #rehefa ao am'zay
+        # rehefa ao am'zay
         if nick in self.toerana:
             bot.say(TENY['ISA_HATRIZAY'] % (
                 nick,
@@ -465,7 +463,7 @@ class Trivia():
             bot.say(TENY['TSY_MANANA_ISA'] % trigger.nick)
         return
 
-    def aide(self, bot,trigger):
+    def aide(self, bot, trigger):
         for term in TENY['FANOROANA']:
             bot.say(term, trigger.nick)
 
@@ -494,20 +492,20 @@ def lalao_stop(bot, trigger):
 def lalao_top(bot, trigger):
     tvb.top(bot, trigger)
 
+
 @rule('!top10$')
 def lalao_top10(bot, trigger):
     tvb.top10(bot, trigger)
 
+
 @rule('!place\s?(.*)?\s?')
 def lalao_place(bot, trigger):
-
     if not trigger.group(1):
         nick = trigger.nick
     else:
         nick = trigger.group(1).strip()
     print nick
     tvb.place(bot, trigger, nick)
-
 
 
 @rule(help_command + '$')
@@ -539,4 +537,3 @@ def announce(bot):
     for channel in bot.channels:
         if channel != config['room']:
             bot.msg(channel, TENY['FILAZANA'] % config['room'])
-
