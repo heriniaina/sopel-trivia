@@ -123,7 +123,11 @@ class Trivia():
             self.play(bot, trigger)
 
     def play(self, bot, trigger):
-        self.mandeha = self.execute("SELECT fanontaniana, valiny, haavo from lalao ORDER BY Random()").fetchone()
+
+        rows = self.getrows("SELECT fanontaniana, valiny, haavo from lalao ORDER BY Random()")
+        if len(rows) > 0:
+            self.mandeha = rows[0]
+
         fanontaniana = self.mandeha[0]
 
         self.point = self.sala * self.mandeha[2]
@@ -198,13 +202,24 @@ class Trivia():
     def execute(self, *args, **kwargs):
         """Execute an arbitrary SQL query against the database.
 
+                Returns a cursor object, on which things like `.fetchall()` can be
+                called per PEP 249."""
+        conn = sqlite3.connect(config['trivia_db'])
+        cur = conn.cursor()
+        cur.execute(*args, **kwargs)
+        conn.close()
+
+    def getrows(self, *args, **kwargs):
+        """Execute an arbitrary SQL query against the database.
+
         Returns a cursor object, on which things like `.fetchall()` can be
         called per PEP 249."""
         conn = sqlite3.connect(config['trivia_db'])
         cur = conn.cursor()
         ret = cur.execute(*args, **kwargs)
+        rows = ret.fetchall()
         conn.close()
-        return ret
+        return rows
 
     def stop(self, bot, trigger):
         if trigger.sender != config['room']:
@@ -270,12 +285,15 @@ class Trivia():
         # tehirizina amin'ny array users
 
         sasakalina = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-        totaly = self.execute("SELECT SUM(isa) FROM mpilalao WHERE nick = ? AND daty > ?",
-                              [trigger.nick, sasakalina]).fetchone()
+        rows = self.getrows("SELECT SUM(isa) FROM mpilalao WHERE nick = ? AND daty > ?",
+                              [trigger.nick, sasakalina])
 
-        if totaly:
+
+
+        if len(rows) > 0:
+            totaly = rows[0]
             isa = totaly[0]
-        if not isa:
+        else:
             isa = 0
         self.mpilalao[trigger.nick] = {
             'niditra': datetime.now(),
@@ -308,8 +326,8 @@ class Trivia():
             }
         # fenoina avy any amin'ny db ny users array
         sasakalina = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-        totaly = self.execute("SELECT id, nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick",
-                              [sasakalina]).fetchall()
+        totaly = self.getrows("SELECT id, nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick",
+                              [sasakalina])
         for total in totaly:
             if total[0] in self.mpilalao:
                 self.mpilalao[total[0]]['isa'] = total[1]
@@ -322,8 +340,8 @@ class Trivia():
                 alatsinainy = datetime.today() - timedelta(days=datetime.today().weekday())
                 alatsinainy = alatsinainy.replace(hour=0, minute=0, second=0)
 
-                rows = self.execute("SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick",
-                                    [alatsinainy]).fetchall()
+                rows = self.getrows("SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick",
+                                    [alatsinainy])
                 for row in rows:
                     if row[0] in self.mpilalao:
                         self.mpilalao[row[0]]['herinandro'] = row[1]
@@ -332,8 +350,8 @@ class Trivia():
             elif self.dingana < 3:
                 # monthly
                 volana = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-                rows = self.execute("SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick",
-                                    [volana]).fetchall()
+                rows = self.getrows("SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick",
+                                    [volana])
                 for row in rows:
                     if row[0] in self.mpilalao:
                         self.mpilalao[row[0]]['volana'] = row[1]
@@ -342,8 +360,8 @@ class Trivia():
             elif self.dingana < 4:
                 # yearly
                 taona = datetime.now().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
-                rows = self.execute("SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick",
-                                    [taona]).fetchall()
+                rows = self.getrows("SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick",
+                                    [taona])
                 for row in rows:
                     if row[0] in self.mpilalao:
                         self.mpilalao[row[0]]['taona'] = row[1]
@@ -351,7 +369,7 @@ class Trivia():
                 self.dingana = 4
             elif self.dingana < 5:
                 # overall
-                rows = self.execute("SELECT nick, SUM(isa) FROM mpilalao GROUP BY nick").fetchall()
+                rows = self.getrows("SELECT nick, SUM(isa) FROM mpilalao GROUP BY nick")
                 for row in rows:
                     if row[0] in self.mpilalao:
                         self.mpilalao[row[0]]['hatrizay'] = row[1]
@@ -359,7 +377,7 @@ class Trivia():
                 self.dingana = 1
 
     def update_stats_table(self, field, nick, value):
-        user_exist = self.execute("SELECT nick FROM statistika WHERE nick = ?", [nick]).fetchall()
+        user_exist = self.getrows("SELECT nick FROM statistika WHERE nick = ?", [nick])
         if len(user_exist) > 0:
             self.execute("UPDATE statistika SET " + field + " = ? WHERE nick = ?", [value, nick])
         else:
@@ -371,26 +389,26 @@ class Trivia():
         if id not in self.filaharana or self.filaharana['id'] < datetime.now() - timedelta(minutes=15):
             alatsinainy = datetime.today() - timedelta(days=datetime.today().weekday())
             alatsinainy = alatsinainy.replace(hour=0, minute=0, second=0)
-            rows = self.execute(
+            rows = self.getrows(
                 "SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick ORDER BY SUM(isa) DESC LIMIT 10",
-                [alatsinainy]).fetchall()
+                [alatsinainy])
 
             self.filaharana['herinandro'] = rows
 
             volana = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-            rows = self.execute(
+            rows = self.getrows(
                 "SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick  ORDER BY SUM(isa) DESC LIMIT 10",
-                [volana]).fetchall()
+                [volana])
             self.filaharana['volana'] = rows
 
             taona = datetime.now().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
-            rows = self.execute(
+            rows = self.getrows(
                 "SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick ORDER BY SUM(isa) DESC LIMIT 10",
-                [taona]).fetchall()
+                [taona])
             self.filaharana['taona'] = rows
 
-            rows = self.execute(
-                "SELECT nick, SUM(isa) FROM mpilalao GROUP BY nick ORDER BY SUM(isa) DESC LIMIT 10").fetchall()
+            rows = self.getrows(
+                "SELECT nick, SUM(isa) FROM mpilalao GROUP BY nick ORDER BY SUM(isa) DESC LIMIT 10")
             self.filaharana['hatrizay'] = rows
 
             self.filaharana['id'] = datetime.now()
@@ -440,11 +458,13 @@ class Trivia():
     def place(self, bot, trigger, nick):
         
         if nick not in self.toerana:
-            row = self.execute("SELECT nick, herinandro, volana, taona, hatrizay FROM statistika WHERE nick = ?",
-                               [nick]).fetchone()
-            if row == None or len(row) == 0:
+            rows = self.getrows("SELECT nick, herinandro, volana, taona, hatrizay FROM statistika WHERE nick = ?",
+                               [nick])
+
+            if len(rows) == 0:
                 self.toerana[nick] = [nick, 0, 0, 0, 0]
             else:
+                row = rows[0]
                 self.toerana[row[0]] = row
 
         # rehefa ao am'zay
