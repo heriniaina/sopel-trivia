@@ -197,18 +197,16 @@ class Trivia():
         bot.say(TENY['VALINY'] % self.mandeha[1])
         self.mandeha = dict()
 
-    def connect(self):
-        """Return a raw database connection object."""
-        return sqlite3.connect(config['trivia_db'])
-
     def execute(self, *args, **kwargs):
         """Execute an arbitrary SQL query against the database.
 
         Returns a cursor object, on which things like `.fetchall()` can be
         called per PEP 249."""
-        with self.connect() as conn:
-            cur = conn.cursor()
-            return cur.execute(*args, **kwargs)
+        conn = sqlite3.connect(config['trivia_db'])
+        cur = conn.cursor()
+        ret = cur.execute(*args, **kwargs)
+        conn.close()
+        return ret
 
     def stop(self, bot, trigger):
         if trigger.sender != config['room']:
