@@ -255,6 +255,8 @@ class Trivia():
                         'niditra': datetime.now(),
                         'isa': 0,
                     }
+                if not self.mpilalao[trigger.nick]['isa']:
+                    self.mpilalao[trigger.nick]['isa'] = 0
                 totaly = self.mpilalao[trigger.nick]['isa'] + self.point
                 bot.say(
                     TENY['VALINY_MARINA'] % (trigger.nick, valiny, "%.2f" % combined, self.point, totaly))
