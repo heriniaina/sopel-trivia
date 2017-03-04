@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 import sopel.module
 from sopel.module import rule, event, priority, thread, example
-from sopel.tools import Identifier, events
+from sopel.tools import stderr, Identifier, events
 
 STRINGS = {
     'mg': {
@@ -36,6 +36,8 @@ STRINGS = {
             u'!top : Ireo namana voalohany',
             u'!place : Ny isa azonao voatahiry',
             u'!top10 : Ny mpilalao 10 voalohany',
+            u'!stop : Ajanona ny lalao',
+            u'!start : Atomboka ny lalao',
         },
         'VOALOHANY_HERINANDRO': u'Ny voalohany nandritra ny herinandro dia \x02%s\x0F nahazo isa \x02\x0304%s\x03\x0F',
         'VOALOHANY_VOLANA': u'Ny voalohany nandritra ny volana dia \x02%s\x0F nahazo isa \x02\x0304%s\x03\x0F',
@@ -70,6 +72,8 @@ STRINGS = {
                       u'!top : Les premiers rangs',
                       u'!place : Tes points',
                       u'!top10 : Les dix premiers joueurs',
+                      u'!stop : Arreter le jeu',
+                      u'!start : Commencer le jeu',
                       },
         'VOALOHANY_HERINANDRO': u'Le top 1 de la semaine est  \x02%s\x0F avec \x02\x0304%s\x03\x0F points',
         'VOALOHANY_VOLANA': u'Le top 1 du mois est  \x02%s\x0F avec \x02\x0304%s\x03\x0F points',
@@ -207,6 +211,7 @@ class Trivia():
         conn = sqlite3.connect(config['trivia_db'])
         cur = conn.cursor()
         cur.execute(*args, **kwargs)
+        conn.commit()
         conn.close()
 
     def getrows(self, *args, **kwargs):
@@ -328,7 +333,8 @@ class Trivia():
             }
         # fenoina avy any amin'ny db ny users array
         sasakalina = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-        totaly = self.getrows("SELECT id, nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick",
+
+        totaly = self.getrows("SELECT nick, SUM(isa) FROM mpilalao WHERE daty > ? GROUP BY nick",
                               [sasakalina])
         for total in totaly:
             if total[0] in self.mpilalao:
