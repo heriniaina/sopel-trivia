@@ -208,22 +208,46 @@ class Trivia():
 
                 Returns a cursor object, on which things like `.fetchall()` can be
                 called per PEP 249."""
-        conn = sqlite3.connect(config['trivia_db'])
+        retry_count = 0
+        conn = None
+        while not conn and retry_count <= 10:
+            # If there is trouble reading the file, retry for 10 attempts
+            # then just give up...
+            try:
+                conn = sqlite3.connect(config['trivia_db'])
+            except sqlite3.OperationalError:
+                retry_count += 1
+                time.sleep(0.001)
+
+        if not conn and retry_count > 10:
+            raise sqlite3.OperationalError("Can't connect to sqlite database.")
         cur = conn.cursor()
         cur.execute(*args, **kwargs)
         conn.commit()
         conn.close()
 
     def getrows(self, *args, **kwargs):
-        """Execute an arbitrary SQL query against the database.
 
-        Returns a cursor object, on which things like `.fetchall()` can be
-        called per PEP 249."""
-        conn = sqlite3.connect(config['trivia_db'])
+        retry_count = 0
+        conn = None
+        while not conn and retry_count <= 10:
+            # If there is trouble reading the file, retry for 10 attempts
+            # then just give up...
+            try:
+                conn = sqlite3.connect(config['trivia_db'])
+            except sqlite3.OperationalError:
+                retry_count += 1
+                time.sleep(0.001)
+
+        if not conn and retry_count > 10:
+            raise sqlite3.OperationalError("Can't connect to sqlite database.")
+
+
         cur = conn.cursor()
         ret = cur.execute(*args, **kwargs)
         rows = ret.fetchall()
         conn.close()
+
         return rows
 
     def stop(self, bot, trigger):
