@@ -253,11 +253,12 @@ class Trivia():
     def stop(self, bot, trigger):
         if trigger.sender != config['room']:
             return
-        if trigger.admin or self.nanomboka == trigger.nick:
+        if trigger.admin or self.mpanomboka == trigger.nick:
             self.mandeha = {}
             self.nanomboka = False
             self.mpanomboka = ""
             bot.say(TENY['NIJANONA'] % trigger.nick)
+
 
     def hamarino(self, x, y):
         if (x.lower() == y.lower()):
