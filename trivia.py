@@ -100,6 +100,7 @@ TENY = STRINGS[lang]
 
 class Trivia():
     def __init__(self):
+        self.fanontaniana = [] #Fanontaniana rehetra
         self.nanomboka = False  # Efa nanomboka ve ny lalao?
         self.mpanomboka = ""  # Iza no nanomboka azy?
         self.mandeha = dict()  # Ny Fanontaniana mipetraka am'zao
@@ -128,7 +129,7 @@ class Trivia():
 
     def play(self, bot, trigger):
 
-        rows = self.getrows("SELECT fanontaniana, valiny, haavo from lalao ORDER BY Random()")
+        rows = self.getrows("SELECT fanontaniana, valiny, haavo from lalao ORDER BY Random() LIMIT 1")
         if len(rows) > 0:
             self.mandeha = rows[0]
 
@@ -253,11 +254,11 @@ class Trivia():
     def stop(self, bot, trigger):
         if trigger.sender != config['room']:
             return
-        if trigger.admin or self.mpanomboka == trigger.nick:
-            self.mandeha = {}
-            self.nanomboka = False
-            self.mpanomboka = ""
-            bot.say(TENY['NIJANONA'] % trigger.nick)
+#        if trigger.admin or self.mpanomboka == trigger.nick:
+        self.mandeha = {}
+        self.nanomboka = False
+        self.mpanomboka = ""
+        bot.say(TENY['NIJANONA'] % trigger.nick)
 
 
     def hamarino(self, x, y):
